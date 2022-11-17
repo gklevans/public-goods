@@ -1,5 +1,6 @@
 {% extends "global/Page.html" %}
 {% load otree %}
+{% load mathfilters %}
 
 {% block title %}
     Results
@@ -7,21 +8,128 @@
 
 {% block content %}
 
-    <table class="table-condensed" style="width:500px; margin-top:20px;">
-        <tr><td>You contributed:</td><td>{{ player.contribution }}</td></tr>
-        <tr><td>Other participants contributed:</td><td></td></tr>
-        {% for p in player.get_others_in_group %}
-            {% if p.id_in_group <= player.stop %}
-                <tr><td></td><td>{{ p.contribution }}</td></tr>
+    <p>The row in bold shows your own allocations to the public account, and the other rows show others' allocations</p>
+
+    <p>You are only shown allocations from players in your group.
+        Question marks replace any allocations not currently shown to you.</p>
+
+    <p>In Rounds 1 through 3, you are paired in groups of 2.  In Rounds 4 through 6, your group
+    will have been combined with another and so you will see three other players' allocation histories.
+    In each round past that, you will see all other players' allocation histories.</p>
+    <p>After each round, there is a 10% probability that the experiment will end, except for Round 15,
+        after which it will end.</p>
+
+    <table class="table">
+        {% for p, h in t.items %}
+            {% if forloop.counter0 == i %}
+                <tr style="font-weight:bold">
+                {% if forloop.counter0 in g11 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EBDDF0">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#D7EEFF">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g12 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EBDDF0">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#FFCCE1">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g13 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EDEBE3">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#FAFFC7">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g14 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EDEBE3">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#E0D7FF">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% else %}
+                        {% for c in h %}
+                            <td>{{ c }}</td>
+                        {% endfor %}
+                {% endif %}
+                </tr>
             {% else %}
-                <tr><td></td><td> ? </td></tr>
+                    <tr>
+                {% if forloop.counter0 in g11 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EBDDF0">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#D7EEFF">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g12 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EBDDF0">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#FFCCE1">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g13 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EDEBE3">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#FAFFC7">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% elif forloop.counter0 in g14 %}
+                        {% for c in h %}
+                            {% if forloop.counter0 > 6 %}
+                                <td style="background-color:#ECE4EA">{{ c }}</td>
+                            {% elif forloop.counter0 > 3 %}
+                                <td style="background-color:#EDEBE3">{{ c }}</td>
+                            {% else %}
+                                <td style="background-color:#E0D7FF">{{ c }}</td>
+                            {% endif %}
+                        {% endfor %}
+                {% else %}
+                        {% for c in h %}
+                            <td>{{ c }}</td>
+                        {% endfor %}
+                {% endif %}
+                </tr>
             {% endif %}
         {% endfor %}
-
     </table>
-    <p></p>
 
-    {% next_button %}
+    <p> Your average payoff per round so far in this experiment has been {{ p }}.  </p>
+
+    {% if l %}
+        This is the end of the experiment.  Your total earnings are {{ p }}.
+    {% else %}
+        {% next_button %}
+    {% endif %}
+
+
 
 
 

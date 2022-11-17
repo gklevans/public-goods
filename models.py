@@ -1,32 +1,25 @@
-from otree.api import (
-    models,
-    widgets,
-    BaseConstants,
-    BaseSubsession,
-    BaseGroup,
-    BasePlayer,
-    Currency as c,
-    currency_range,
-)
-
+from otree.api import models, widgets, BaseConstants, BaseSubsession, BaseGroup, BasePlayer, currency_range
+import numpy as np
 
 class Constants(BaseConstants):
     name_in_url = 'public_goods_klevans'
-    players_per_group = 3
-    num_rounds = 5
-
-    endowment = players_per_group
+    players_per_group = 8
+    endowment = 5 * (players_per_group - 1) * players_per_group #set to ensure no bankruptcy
+    num_rounds = min(15, np.random.geometric(p=0.1))
     multiplier = 1
-    inputs = [[x+1,'Contribute ' + str(x+1) + ' unit(s) at a total cost of $' + str((x+1)**2 / 2) +
-               '. Increasing your contribution to ' + str(x+2) + ' units would cost an additional $' + str(1.5 + x)]
-              for x in range(endowment)]
-    inputs[-1][1] = ('Contribute ' + str(endowment) + ' unit(s) at a total cost of $' + str((endowment**2/2)) +
-                     '.  This is the maximum contribution.')
+    instructions_template = 'klevans_public_goods/instructions.html'
+    treatment = True
+
+    def payoff_x(y):
+        return Constants.endowment - 5 * (y ** 2 - y)
 
 
 class Subsession(BaseSubsession):
-    def creating_session(self):
-        self.group_randomly()
+    pass
+
+
+class Label():
+    max_contribution = Constants.players_per_group
 
 
 class Group(BaseGroup):
@@ -37,16 +30,15 @@ class Group(BaseGroup):
         players = self.get_players()
         contributions = [p.contribution for p in players]
         self.total_contribution = sum(contributions)
-        self.individual_share = (
-            self.total_contribution * Constants.multiplier / Constants.players_per_group
-        )
+        self.individual_share = self.total_contribution * Constants.multiplier / Constants.players_per_group
         for p in players:
-            p.payoff = Constants.endowment - p.contribution**2/2 + self.total_contribution
-            p.stop = p.round_number + int(p.id_in_group <= p.round_number)
+            p.payoff = Constants.endowment - 10 * (p.contribution**2 - p.contribution)/2 + 10 * self.total_contribution
 
 
 class Player(BasePlayer):
+    contribution = models.IntegerField(min=0, max=Constants.players_per_group,
+                                       label="How much do you want to contribute?")
 
-    contribution = models.CurrencyField(min=0, max=Constants.endowment, widget=widgets.RadioSelect,
-                                        choices=Constants.inputs)
-    stop = models.IntegerField()
+    def contribution_error_message(player, value):
+        if value == 0:
+            return 'Must contribute at least 1 unit'

@@ -2,14 +2,129 @@
 {% load otree %}
 
 {% block title %}
-    Contribute
+Contribute
 {% endblock %}
 
 {% block content %}
 
-    {% formfield player.contribution %}
+    <p>During the first three rounds, Players 1 and 2 will only see each other’s allocation histories,
+        as will Players 3 and 4, Players 5 and 6, and Players 7 and 8.  After each of the next three rounds,
+        Players 1, 2, 3 and 4 will only seed each other’s allocation histories, as will Players 5, 6, 7, and 8.
+        After each of Rounds 7 through 9, Players 1, 2, 5, and 6 will also see each other’s histories,
+        as will Players 3, 4, 7, and 8 (so that each player sees the allocation histories of five other players).
+        In each following round, each player will see all other players’ allocation histories.</p>
 
-    {% next_button %}
+    <p>You will earn 10 points for every token allocated to the group account,
+        including by any whose past decisions are not currently shown to you.</p>
+
+<p>Move the slider to decide how many units to contribute. (You must contribute at least 1 unit)</p>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+
+<input type="range" name="contribution" min="0" max="{{ Constants.players_per_group }}"
+       value="0", oninput="updateDescription(this)">
+<p id="contribute_description"></p>
+<p id="private_description"></p>
+<p id="public_description"></p>
+<p id="ch_private_description"></p>
+<p id="ch_public_description"></p>
+
+<div id="highchart"></div>
+
+<p id="warning"></p>
+
+<script>
+
+    let contribute_description = document.getElementById('contribute_description');
+    let private_description = document.getElementById('private_description');
+    let public_description = document.getElementById('public_description');
+    let ch_private_description = document.getElementById('ch_private_description');
+    let ch_public_description = document.getElementById('ch_public_description');
+    let warning = document.getElementById('warning');
+    function updateDescription(input) {
+        let give = parseInt(input.value);
+        let max = {{ Constants.players_per_group }}
+        let pay_x = {{ Constants.endowment }} - 5 * ( give ** 2 - give )
+        let cost_x = 10 * give
+        let public = 10 * {{ Constants.players_per_group }} * give
+        if (give > 0) {
+            warning.innerText = `If you wish to allocate ${give} tokens to the group account, click Next.`;
+        } else {
+            warning.innerText = `Must allocate at least 1 unit. Increase your allocation before clicking Next.`
+        }
+        contribute_description.innerText = `Allocation: ${give} tokens out of ${max} possible to the group account.`
+        if (give == 0) {
+            warning.innerText = `Must allocate at least 1 token`;
+        }
+        if (give == 1) {
+            contribute_description.innerText = `Allocation: ${give} token out of ${max} possible to the group account.`;
+        }
+        private_description.innerText = `${pay_x} points: Amount kept in your private account`
+        public_description.innerText = `${public} points: Amount added to the group account`
+        if (give < max) {
+            ch_private_description.innerText = `${cost_x} points: Decrease in your private account` +
+                                               `if you contribute one more unit`
+            ch_public_description.innerText = `10 points: Increase in each player's share of group account` +
+                                              `if you contribute one more unit`
+        } else {
+            ch_private_description.innerText = `This is the maximum contribution`
+            ch_public_description.innerText = `This is the maximum contribution`
+        }
+
+        redrawChart(pay_x, public, give)
+    }
+</script>
+
+
+{% next_button %}
+
+
+<script>
+    function redrawChart(pay_x, public, give) {
+        let cats = ['Amount Kept in Your Private Account']
+        let amts = [pay_x]
+        for (let i = 1; i <= {{ Constants.players_per_group }}; i++) {
+            cats.push('Amount Added to Share of Group Account for Player ' + i)
+            amts.push([give] * {{ Constants.players_per_group }})
+        }
+        Highcharts.chart('highchart', {
+            chart: {
+                type: 'bar'
+            },
+            title: null,
+            xAxis: {
+                categories: cats,
+                title: {
+                    text: null
+                }
+            },
+            yAxis: {
+                min: 0,
+                max: {{Constants.endowment}},
+                labels: {
+                    overflow: 'justify'
+                },
+                title: {
+                    text: "Amount (in points)"
+                }
+            },
+            plotOptions: {
+                series: {
+                    animation: false
+                }
+
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                data: amts,
+                showInLegend: false,
+            }]
+        });
+    }
+</script>
+
 
 
 {% endblock %}
